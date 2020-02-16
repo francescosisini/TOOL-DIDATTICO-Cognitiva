@@ -1,4 +1,5 @@
 #define MAX 30
+#define NCLASSI 10
 
 /*________________________________________
   
@@ -9,7 +10,7 @@
 typedef struct
 {
   char parola[MAX];
-  int ricorrenza;
+  int ricorrenza[NCLASSI];
 } Voce;
 
 typedef struct blocco
@@ -38,21 +39,21 @@ void inizia_bow(Bow *pbow);
   Se una voce non è presente inserisce un nuovo
   blocco in modo ordinato
 */
-int aggiorna_blocco(Bow *pbow, char* parola);
+int aggiorna_blocco(Bow *pbow, char* parola, int classe);
 
 
 /*_________________________________________________
 
   Stampa a scehrmo la Bow
 */
-void mostra_bow(Bow b);
+void mostra_bow(Bow b, int classe);
 
 /*_________________________________________________
 
   Cerca il blocco corrispondente alla parola e
   restituisce la ricorrenza
 */
-int ricorrenza_parola(Bow b, char * parola);
+int ricorrenza_parola(Bow b, char * parola, int classe);
 
 /*_________________________________________________
 
@@ -65,6 +66,12 @@ void leggi_bow(Bow *pb,char * nome_file);
   Scrivi Bow su file
 */
 void scrivi_bow(Bow b,char * nome_file);
+
+/*_________________________________________________
+
+  Conta le ricorrenze presenti nella Bow
+*/
+long int conta_parole(Bow b,int classe);
 
 
 

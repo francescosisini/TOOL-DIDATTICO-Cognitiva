@@ -3,16 +3,19 @@
 #include <string.h>
 #include "bow_lib.h"
 
+
+// bow aggiungi  <testo.txt> <classe>
+
 int main(int argc, char *argv[])
 {
   Bow b;
   inizia_bow(&b);
-  leggi_bow(&b,"SISO_Bow.txt");
+  leggi_bow(&b,"Bow.txt");
   //mostra_bow(b);
 
-  if(argc<3)
+  if(argc<4)
     {
-      printf("Uso: cognitiva_bow <testo.txt> <LABEL>\n");
+      printf("Uso: cognitiva_bow aggiungi <testo.txt> <classe>\n");
       exit(1);
     }
 
@@ -20,14 +23,14 @@ int main(int argc, char *argv[])
   //Creazione copia pulita del file
   //Mantiene solo alfabeto A-z e trasforma il resto in spazi
 
-  char * file_pulito = malloc(strlen(argv[1]+10));
-  strcpy(file_pulito,argv[1]);
+  char * file_pulito = malloc(strlen(argv[2]+10));
+  strcpy(file_pulito,argv[2]);
   strcat(file_pulito,".clean");
   
-  FILE * f = fopen(argv[1],"rb");
+  FILE * f = fopen(argv[2],"rb");
   if(f == 0)
     {
-      printf("File %s non trovato\n",argv[1]);
+      printf("File %s non trovato\n",argv[3]);
       exit(1);
     }
 
@@ -54,18 +57,20 @@ int main(int argc, char *argv[])
   fclose(fc);
   fclose(f);
 
-  
+  int cl = atoi(argv[3]);//La classe del documento
   f = fopen(file_pulito,"rt");
   char lemma[MAX];
   while(fscanf(f,"%s",lemma) == 1)
     {
-      aggiorna_blocco(&b,lemma);
+      aggiorna_blocco(&b,lemma,cl);
     }
   
   
   //mostra_bow(b);
   
-  scrivi_bow(b,"SISO_Bow.txt");
+  scrivi_bow(b,"Bow.txt");
+  for(int i=0;i<NCLASSI;i++)
+    printf("Classe %d, parole totali:%d\n",i,conta_parole(b,i));
   //int r = ricorrenza_parola(b, "ciao");
   
   

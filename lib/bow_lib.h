@@ -51,9 +51,9 @@ void mostra_bow(Bow b, int classe);
 /*_________________________________________________
 
   Cerca il blocco corrispondente alla parola e
-  restituisce la ricorrenza
+  restituisce l'array della ricorrenza
 */
-int ricorrenza_parola(Bow b, char * parola, int classe);
+int * ricorrenza_parola(Bow b, char * parola);
 
 /*_________________________________________________
 
@@ -73,5 +73,12 @@ void scrivi_bow(Bow b,char * nome_file);
 */
 long int conta_parole(Bow b,int classe);
 
+/*_________________________________________________
+
+  Calcola la probabilità codizionata di un testo
+  rispetto ai parametri
+  il risultato viene momorizzato in classi
+*/
+void classifica_testo(Bow testo,Bow param, double classi[NCLASSI]);
 
 

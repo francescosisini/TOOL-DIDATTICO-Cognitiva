@@ -1,3 +1,4 @@
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -86,11 +87,11 @@ void leggi_bow(Bow *pb,char * nome_file)
   int rd;
   while((rd=fread(&v,sizeof(Voce),1,f))>0)
     {
-      printf("Letti %d byte da %s\n",rd,nome_file);
+      //printf("Letti %d byte da %s\n",rd,nome_file);
       
       for(int c = 0; c< NCLASSI; c++)
         {
-          printf("Leggo classe %d\n",c);
+          //printf("Leggo classe %d\n",c);
           int r = v.ricorrenza[c];
           for(int i = 1; i<=r; i++)
             {
@@ -102,13 +103,13 @@ void leggi_bow(Bow *pb,char * nome_file)
   
 }
 
-int ricorrenza_parola(Bow b, char *s,int c)
+int * ricorrenza_parola(Bow b, char *s)
 {
   while(b)
     {
       if(!strcmp(b->voce.parola,s))
         {
-          return (b->voce.ricorrenza[c]);
+          return (b->voce.ricorrenza);
         }
       b = b->prox;
     }
@@ -127,3 +128,34 @@ long int conta_parole(Bow b,int c)
 
 }
 
+void classifica_testo(Bow testo,Bow param, double classi[NCLASSI])
+{
+  memset(classi,0,sizeof(double)*NCLASSI);
+
+  //Memmorizzo in nparole il numero di parole presenti in ogni classe di testo
+  int nparole[NCLASSI];
+
+  for(int i=0; i<NCLASSI;i++)
+    nparole[i]=conta_parole(param,i);
+  
+  double p = 0 ;
+  double f = 0 ;
+  while(testo)
+    {
+      //Cerco l'array di ricorrenze della parola 
+      int *ric = ricorrenza_parola(param,testo->voce.parola);
+      if(ric != 0)
+        {
+          for(int cls = 0; cls<NCLASSI; cls++)
+            {
+              if(ric[cls]>0)
+                {
+                  classi[cls] += testo->voce.ricorrenza[0]*log((double)ric[cls]/(double)nparole[cls]);
+                  printf("%s %d %d p=%f\n",testo->voce.parola,testo->voce.ricorrenza[0],ric[cls],classi[cls]);
+                }
+            }
+        }
+          testo = testo->prox;
+    }
+  
+}

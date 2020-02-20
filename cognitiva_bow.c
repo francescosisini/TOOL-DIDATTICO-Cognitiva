@@ -1,3 +1,4 @@
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,8 +17,6 @@ int main(int argc, char *argv[])
     CLASSIFICA
   } AZIONE;
   
-  
-
   int azione;
   
   if(argc<3)
@@ -31,6 +30,11 @@ int main(int argc, char *argv[])
   if(t == 0)
     {
       azione = AGGIUNGI;
+        if(argc<4)
+        {
+          printf("Uso: bow aggiungi <file.txt> CLASS\nEs.: $./bow Odissea.txt 1\n");
+          exit(0);
+        }
     }
   else
     {
@@ -46,34 +50,41 @@ int main(int argc, char *argv[])
           printf("AZIONE = {aggiungi, classifica }\n");
           exit(1);
         }
-      
     }
   
   //La BOW con tutte le classi
   Bow b;
   inizia_bow(&b);
   leggi_bow(&b,"Bow.txt");
-
+  
   //Creazione copia pulita del file
   //Mantiene solo alfabeto A-z e trasforma il resto in spazi
 
-  char * file_pulito = malloc(strlen(argv[2]+10));
+  char * file_pulito = malloc(strlen(argv[2])+20);
   strcpy(file_pulito,argv[2]);
   strcat(file_pulito,".clean");
   
   FILE * f = fopen(argv[2],"rb");
   if(f == 0)
     {
-      printf("File %s non trovato\n",argv[3]);
+      printf("File %s non trovato\n",argv[2]);
       exit(1);
     }
 
   FILE * fc = fopen(file_pulito,"w");
   char c;
+  int lw = 0;
   while(fread(&c,sizeof(char),1,f))
     {
+      c=tolower(c);
+      if(lw>=MAX)
+        {
+          printf("Attenzione: le parle devono avere lunghezza massima %d\n",MAX);
+          exit(1);
+        }
       if(c>='A')
         {
+          lw++;
           if(c=='à') c= 'a';
           if(c=='è') c= 'e';
           if(c=='é') c= 'e';
@@ -85,6 +96,7 @@ int main(int argc, char *argv[])
       else
         {
           c =' ';
+          lw = 0;
           fwrite(&c,sizeof(char),1,fc);
         }
     }
@@ -93,7 +105,6 @@ int main(int argc, char *argv[])
 
   if(azione == AGGIUNGI)
     {
-  
       int cl = atoi(argv[3]);//La classe del documento
       f = fopen(file_pulito,"rt");
       char lemma[MAX];
@@ -114,19 +125,31 @@ int main(int argc, char *argv[])
       inizia_bow(&testo);
       f = fopen(file_pulito,"rt");
       char lemma[MAX];
+
       while(fscanf(f,"%s",lemma) == 1)
         {
           aggiorna_blocco(&testo,lemma,0);
         }
-
+      
       double classi[NCLASSI];
       classifica_testo(testo,b, classi);
       printf("CLASSIFICAZIONE:\n");
+      int argmax = 0;
+      double max = -DBL_MAX;
       for(int i=0;i<NCLASSI;i++)
-        printf("Class %d, p=%f\n",i,classi[i]);
-      
-    }
+        {
+          if(classi[i]>max && classi[i]!=0)
+            {
+              max = classi[i];
+              argmax = i;
+            }
 
+              
+          printf("Class %d, p=%f\n",i,classi[i]);
+        }
+      printf("\nIl documento appartiene alla classe %d\n", argmax);
+    }
+ 
   
   
   

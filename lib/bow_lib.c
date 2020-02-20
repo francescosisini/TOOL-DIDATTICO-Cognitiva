@@ -130,6 +130,7 @@ long int conta_parole(Bow b,int c)
 
 void classifica_testo(Bow testo,Bow param, double classi[NCLASSI])
 {
+  //Inizializza a 0 il vettore dei risultati
   memset(classi,0,sizeof(double)*NCLASSI);
 
   //Memmorizzo in nparole il numero di parole presenti in ogni classe di testo
@@ -137,11 +138,18 @@ void classifica_testo(Bow testo,Bow param, double classi[NCLASSI])
 
   for(int i=0; i<NCLASSI;i++)
     nparole[i]=conta_parole(param,i);
+
+  int nparole_testo = conta_parole(testo,0);
   
   double p = 0 ;
-  double f = 0 ;
+  double x = 0 ;
+  
   while(testo)
     {
+      //Ricorrenza della parola nel testo
+      x = (double)(testo->voce.ricorrenza[0]);
+      // printf("Testo, %s:%f\n",testo->voce.parola,x);
+      
       //Cerco l'array di ricorrenze della parola 
       int *ric = ricorrenza_parola(param,testo->voce.parola);
       if(ric != 0)
@@ -150,12 +158,23 @@ void classifica_testo(Bow testo,Bow param, double classi[NCLASSI])
             {
               if(ric[cls]>0)
                 {
-                  classi[cls] += testo->voce.ricorrenza[0]*log((double)ric[cls]/(double)nparole[cls]);
-                  printf("%s %d %d p=%f\n",testo->voce.parola,testo->voce.ricorrenza[0],ric[cls],classi[cls]);
+                  double p = (double)ric[cls]/(double)nparole[cls];
+                  classi[cls] += x*log10(p)/(double)nparole[cls];
+                  //printf("%s %d %d p=%f\n",testo->voce.parola,testo->voce.ricorrenza[0],ric[cls],classi[cls]);
+                }
+              else
+                {
+                  if((double)nparole[cls]>0)
+                    classi[cls] += x*log10(1/(double)nparole[cls]);
                 }
             }
         }
           testo = testo->prox;
+    }
+  for(int cls = 0; cls<NCLASSI; cls++)
+    {
+      if((double)nparole[cls]>0)
+        classi[cls] +=log10(1./(double)NCLASSI);
     }
   
 }

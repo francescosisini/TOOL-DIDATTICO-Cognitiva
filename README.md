@@ -9,12 +9,13 @@ Sviluppo di codice base per i fondamenti del Machine Learning:
 
 [Video sul tema](https://www.youtube.com/channel/UCDwLlFqa0xZ71PEOdHA0aSQ)
 
-## Compilazione**
+## Compilazione
 
 Il progetto contiene già i binari compilati per Linux, per compilare i sorgenti linkare la libreria matematica e i sorgenti contenuti nella cartella [lib](lib)
 
 
 ## Libri
+
 
 [Introduzione alle reti neurali con esempi in linguaggio C](https://www.amazon.it/dp/1692945319)
 

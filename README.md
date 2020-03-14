@@ -12,6 +12,7 @@ Sviluppo di codice base per i fondamenti del Machine Learning:
 **Libri**
 
 [Introduzione alle reti neurali con esempi in linguaggio C](https://www.amazon.it/dp/1692945319)
+
 [Reti neurali non supervisionate: Il Cognitrone di Fukushima](https://www.amazon.it/Reti-neurali-non-supervisionate-cognitrone/dp/1798929244)
 
 Il progetto contiene già i binari compilati per Linux, per compilare i sorgenti linkare la libreria matematica e i sorgenti contenuti nella cartella [lib](lib)

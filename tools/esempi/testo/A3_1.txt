@@ -1,0 +1,1 @@
+la funzione monotona non cresce se cala

@@ -24,7 +24,7 @@
 
 /*___________________________
  *| suite:  cognitiva
- *| programma: apms
+ *| programma: rns
  *| Francesco Sisini (c) 2019
  */
 
@@ -79,6 +79,7 @@ int main(int argc,char *argv[])
 
   char cls = 0;// 0->uso del programma per addestramento rete, 1->classuficazione
   char help = 0;
+  char verbose = 0;
   int c;
   char * f_name; //il file con i dati
   char * l1_name; // i dati del  layer 1
@@ -109,7 +110,7 @@ int main(int argc,char *argv[])
       if(strcmp(argv[i],"-m") == 0)
         {
           argmin += 2;
-          if(sscanf(argv[i],"%lf",&sinapsi)!=1)
+          if(sscanf(argv[i+1],"%lf",&sinapsi)!=1)
             {
               printf("Attenzione <max_sinapsi> deve essere un decimale. %s non e' un decimale\n",argv[i]);
               exit(1);
@@ -153,6 +154,12 @@ int main(int argc,char *argv[])
        if(strcmp(argv[i],"-h") == 0 || strcmp(argv[i],"--help") == 0)
         {
           help = 1;
+        }
+
+       //opzione help  "-v"
+       if(strcmp(argv[i],"-v") == 0)
+        {
+          verbose = 1;
         }
 
        /*_____________________________________________
@@ -227,7 +234,7 @@ int main(int argc,char *argv[])
       printf("\nUSO: rns OPZIONE [PARAMETRI]");
       printf("\nrns di Scuola_Sisini addestra due layer di una rete neurale shallow oppure li usa per la classificazione\n");
       printf("Esempi:");
-      printf("\n\t rn -a -f FILE<dati> -d INT<neuroni input> INT<neuroni intrecalari> INT<neuroni output>  [-e INT<numero_epoche>] [-l DECIMAL<lerning_rate>] [-m DECIMAL<max_sinapsi>] [-s INT<rnd_seed>] [-n INT<normalizzazione\n");
+      printf("\n\t rn -a -f FILE<dati> -d INT<neuroni input> INT<neuroni intrecalari> INT<neuroni output>  [-e INT<numero_epoche>] [-l DECIMAL<lerning_rate>] [-m DECIMAL<max_sinapsi>] [-s INT<rnd_seed>] [-n INT<normalizzazione] [-v]\n");
       printf("\n\t rn -c -f FILE<dati> -l1 FILE<layer1> -l2FILE<layer2> -d INT<neuroni input> INT<neuroni intrecalari> INT<neuroni output>\n");
       
       printf("\n");
@@ -237,6 +244,7 @@ int main(int argc,char *argv[])
       printf("\t<max_sinapsi> è il valore massimo che viene assegnato alle connessioni durante la inizializzazione random\n");
       printf("\t<rnd_seed> è il seme usato per la inizializzazione random.\n");
       printf("\tFILE è in formato csv. Ogni riga è un dato. Il primo campo è la classe, seguono un numero di valori interi pari a <neuroni_input>.\n");
+      printf("\t-v (verbose) visualizza output durante l'elaborazione");
       printf("Help %d\n",help);
             exit(1);
     }
@@ -275,13 +283,15 @@ int main(int argc,char *argv[])
 
   /*Output desiderato*/
   double * v_d = malloc(l2_np*sizeof(double));/* NP output desiderato uno per percettrone*/
-
-  if((long)img*(long)v_x0*(long)v_t*(long)v_Dt*(long)v_s1*(long)v_y1*(long)v_x1*(long)v_u*(long)v_Du*(long)v_s2*(long)v_y2*(long)v_d == 0)
+  
+  if(img ==0 || v_x0==0 ||v_t==0 ||v_Dt==0 ||v_s1==0 ||v_y1==0 ||v_x1==0 ||v_u==0 ||v_Du==0 ||v_s2==0 ||v_y2==0 ||v_d == 0)
     {
       printf("Errore: memoria insufficiente. Verificare le dimensioni della rete\n");
-      exit(1);
+      printf(" %p, %p\n",v_x1,v_Du);
+      //exit(1);
     }
 
+  
   if(cls)
     {
       /* carica i pesi v_t e v_u dai file */
@@ -292,7 +302,7 @@ int main(int argc,char *argv[])
           exit (1);
         }
       
-      layer_read(w,v_t, l1_nd, L1_NP);
+      layer_read(w,v_t, l1_nd, l1_np);
       fclose(w);
       
       w=fopen(l2_name,"rb");
@@ -312,10 +322,13 @@ int main(int argc,char *argv[])
           exit (1);
         }
       leggi_dato(img,&label,w);
+      if(verbose)
+        {
+          printf("\nDATO:");
+          for(int i=0;i<l1_nd;i++)
+            printf("\t%d",img[i]);
+        } 
       fclose(w);
-      
-      
-      
       
       /* conversione immagine da int a double */
       v_x0[0]=1;
@@ -324,11 +337,10 @@ int main(int argc,char *argv[])
           v_x0[i+1]=((double)img[i])/(double)norm;
         }      
       
-      
       /*** PROPAGAZIONE AVANTI ***/
       
       /** Feed Forward: Input->L1->output to L2*/
-      layer_feed_forward(v_s1,v_y1,v_t,v_x0,L1_NP,l1_nd);
+      layer_feed_forward(v_s1,v_y1,v_t,v_x0,l1_np,l1_nd);
       
       /** Mappa y1 in x1 aggiungendo l'elemento x1_0=1*/
       layer_map_out_in(v_x1, v_y1,l2_nd);
@@ -347,6 +359,8 @@ int main(int argc,char *argv[])
               fmax=v_y2[i];
               imax=i;
             }
+          if(verbose)
+            printf("\nPARZIALI: %d,%f\n\n",i,v_y2[i]*100);
         }
 
             
@@ -356,33 +370,32 @@ int main(int argc,char *argv[])
       fflush(stdout);
     }
   else
-    {
-      
-      /*Carica dal file le configurazioni iniziali della rete*/
+    {      
+      /* Imposta random la configurazione iniziale della rete */
       
       srand(seed);
       /*2) bias+pesi strato 1*/
       for(int i=0;i<(l1_nd+1)*l1_np;i++)
         v_t[i]=sinapsi*(double)rand()/(double)RAND_MAX;
-      //print_object(v_t+1,l1_nd+1, l1_np,1,1);
-      
-      printf("\n____________________________________________");
-      printf("\n| addestramento");
-      printf("\n| Neuroni input: %d",l1_nd);
-      printf("\n| Neuroni intercalari: %d",l1_np);
-      printf("\n| Neuroni output: %d",l2_np);
-      printf("\n| Learning rate: %f",rate);
-      printf("\n| Random seed: %d",seed);
-      printf("\n| Massimo sinapsi: %f",sinapsi);
-      
-      
+            
       /*3) bias+pesi strato 2*/
       for(int i=0;i<(l2_nd+1)*l2_np;i++)
         v_u[i]=sinapsi*(double)rand()/(double)RAND_MAX;
       
+      printf("\n____________________________________________");
+      printf("\n| addestramento");
+      printf("\n| Neuroni input: %d",l1_nd);
+      printf("\n| Neuroni intercalari: %d",l2_nd);
+      printf("\n| Neuroni output: %d",l2_np);
+      printf("\n| Learning rate: %f",rate);
+      printf("\n| Random seed: %d",seed);
+      printf("\n| Massimo sinapsi: %f",sinapsi);
+            
       for(int ii=0;ii<epoche;ii++)
         {
-          printf("\n\nEpoca %d di %d\n",ii+1,epoche);
+          /* comunicazioni: epoche */
+          if(verbose)
+            printf("\n\n\tEpoca %d di %d\n",ii+1,epoche);
           
           FILE* stream = fopen(f_name, "r");
           if(stream==0)
@@ -390,11 +403,27 @@ int main(int argc,char *argv[])
               printf("Errore: il file %s non e' presente\n",f_name);
               exit(1);
             }
-          
-          /*Carica i dati di training ed esegue il training*/
+
+          int dati = 0;
+
+          /* Carica i dati di training ed esegue il training*/
           while(leggi_dato(img,&label,stream)>0)
             {
-              /* conversione immagine da int a double */
+              dati++;
+
+              /* Comunicazioni: visualizzazione del dato */
+              if(verbose)
+                {
+                  printf("Label %d\t",label);
+                  for(int z=0;z<l1_nd;z++)
+                    {
+                      printf("%d\t",img[z]);
+                    }
+                  printf("\n");
+
+                }
+              
+              /* conversione dati da int a double */
               v_x0[0]=1;
               for(int i=0;i<l1_nd;i++)
                 {
@@ -446,6 +475,8 @@ int main(int argc,char *argv[])
                   perc_correzione( v_t+i*(l1_nd+1),v_x0,v_s1[i],dd, rate,l1_nd);
                 }
             }
+          if(verbose)
+            printf("\n\tLetti %d dati",dati);
           fclose(stream);
     }
       
@@ -460,7 +491,6 @@ int main(int argc,char *argv[])
       layer_writedown(sw,v_u,l2_nd,l2_np);
       fclose(sw);
       
-      printf("\n|_______________________________\n");
-      printf("\n| Prodotti: layer1.w e layer2.w\n");
+      printf("\nProdotti: layer1.w e layer2.w\n");
     }
 }

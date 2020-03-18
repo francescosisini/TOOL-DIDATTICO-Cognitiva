@@ -1,10 +1,10 @@
 # Tool di cognitiva
-- Compilazione
+**Compilazione**
 
 Dalla cartella tools:
 
-`gcc -o rns cognitiva_ap.c  lib/libcogni.c -Ilib -lm`
+`gcc -o rns rns_sorgente.c  lib/libcogni.c -Ilib -lm`
 
-- Uso
+**Uso**
 
 `./rns -h`

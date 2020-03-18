@@ -130,7 +130,7 @@ double Dactiv_function(double summed_input)
   return r*(1-r);//corretta, fare i conti!
 }
 
-int leggi_dato(int * o,int * out_label,FILE * in_stream)
+int leggi_dato_classe(int * o,int * out_label,FILE * in_stream)
 {
   int r = fscanf(in_stream,"%d",out_label);
   int rd;
@@ -142,6 +142,21 @@ int leggi_dato(int * o,int * out_label,FILE * in_stream)
     } while(rd>0);
   return r;
 }
+
+int leggi_dato(int * o,FILE * in_stream)
+{
+  int r;
+  int rd;
+  int i = 0;
+  do
+    {
+      r += (rd = fscanf(in_stream,",%d",o+i));
+      i++;
+    } while(rd>0);
+  return r;
+}
+
+
 
 void print_object(double x[],int r, int c,int R,int C)
 {

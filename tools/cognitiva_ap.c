@@ -80,6 +80,7 @@ int main(int argc,char *argv[])
   char cls = 0;// 0->uso del programma per addestramento rete, 1->classuficazione
   char help = 0;
   char verbose = 0;
+  char layer_files = 0;
   int c;
   char * f_name; //il file con i dati
   char * l1_name; // i dati del  layer 1
@@ -195,11 +196,19 @@ int main(int argc,char *argv[])
          //obbligatorio nime file  "-f"
        if(strcmp(argv[i],"-f") == 0)
          {
+
+           if(i == argc-1)
+             {
+               printf("Errore: specificare un nome per il file.\n");
+               exit(1);
+             }
+           
            int l=strlen(argv[i+1]);
            f_name=malloc(l+10);
            if(f_name==0)
              {
                printf("Errore: memoria insufficiente.\n");
+               exit(1);
              }
            strcpy(f_name,argv[i+1]);
          }
@@ -210,9 +219,10 @@ int main(int argc,char *argv[])
            l1_name=malloc(l+10);
            if(l1_name==0)
              {
-               printf("Errore: memoria insufficiente.\n");
+               printf("\Errore: memoria insufficiente.\n");
              }
            strcpy(l1_name,argv[i+1]);
+           layer_files++;
          }
 
         //obbligatorio nime file  "-l2"
@@ -222,9 +232,11 @@ int main(int argc,char *argv[])
            l2_name=malloc(l+10);
            if(l2_name==0)
              {
-               printf("Errore: memoria insufficiente.\n");
+               printf("\nErrore: memoria insufficiente.\n");
+               exit(1);
              }
            strcpy(l2_name,argv[i+1]);
+           layer_files++;
          }
        
     }
@@ -286,7 +298,7 @@ int main(int argc,char *argv[])
   
   if(img ==0 || v_x0==0 ||v_t==0 ||v_Dt==0 ||v_s1==0 ||v_y1==0 ||v_x1==0 ||v_u==0 ||v_Du==0 ||v_s2==0 ||v_y2==0 ||v_d == 0)
     {
-      printf("Errore: memoria insufficiente. Verificare le dimensioni della rete\n");
+      printf("\nErrore: memoria insufficiente. Verificare le dimensioni della rete\n");
       printf(" %p, %p\n",v_x1,v_Du);
       //exit(1);
     }
@@ -294,11 +306,18 @@ int main(int argc,char *argv[])
   
   if(cls)
     {
+      /* controlli preliminari */
+      if(layer_files != 2)
+        {
+           printf("\nErrore: non sono stati specificati i due file <layer1> e <layer2>. Sricivi rns -h per vedere l'uso del programma.\n");
+           exit (1);
+        }
+      
       /* carica i pesi v_t e v_u dai file */
       FILE* w=fopen(l1_name,"rb");
       if(w==0)
         {
-          printf("File %s non trovato\n",l1_name);
+          printf("\nFile %s non trovato\n",l1_name);
           exit (1);
         }
       
@@ -308,7 +327,7 @@ int main(int argc,char *argv[])
       w=fopen(l2_name,"rb");
       if(w==0)
         {
-          printf("File %s non trovato\n",l2_name);
+          printf("\nFile %s non trovato\n",l2_name);
           exit (1);
         }
       
@@ -318,15 +337,17 @@ int main(int argc,char *argv[])
       w=fopen(f_name,"r");
       if(w==0)
         {
-          printf("File %s non trovato\n",f_name);
+          printf("\nFile %s non trovato\n",f_name);
           exit (1);
         }
-      leggi_dato(img,&label,w);
+      leggi_dato(img,w);
       if(verbose)
         {
-          printf("\nDATO:");
+          printf("\nDATO  : ");
           for(int i=0;i<l1_nd;i++)
-            printf("\t%d",img[i]);
+            printf("%d ",img[i]);
+
+          printf("\n");
         } 
       fclose(w);
       
@@ -360,12 +381,12 @@ int main(int argc,char *argv[])
               imax=i;
             }
           if(verbose)
-            printf("\nPARZIALI: %d,%f\n\n",i,v_y2[i]*100);
+            printf("\nClasse: %d\t%0.lf%%",i,v_y2[i]*100);
         }
 
             
       
-      printf("\n%d,%f\n\n",imax,fmax*100);
+      printf("\n%d\n\n",imax);
       
       fflush(stdout);
     }
@@ -381,15 +402,16 @@ int main(int argc,char *argv[])
       /*3) bias+pesi strato 2*/
       for(int i=0;i<(l2_nd+1)*l2_np;i++)
         v_u[i]=sinapsi*(double)rand()/(double)RAND_MAX;
-      
-      printf("\n____________________________________________");
-      printf("\n| addestramento");
-      printf("\n| Neuroni input: %d",l1_nd);
-      printf("\n| Neuroni intercalari: %d",l2_nd);
-      printf("\n| Neuroni output: %d",l2_np);
-      printf("\n| Learning rate: %f",rate);
-      printf("\n| Random seed: %d",seed);
-      printf("\n| Massimo sinapsi: %f",sinapsi);
+
+      printf("\n*****************************");
+      printf("\nNeuroni input: %d",l1_nd);
+      printf("\nNeuroni intercalari: %d",l2_nd);
+      printf("\nNeuroni output: %d",l2_np);
+      printf("\nLearning rate: %f",rate);
+      printf("\nRandom seed: %d",seed);
+      printf("\nMassimo sinapsi: %f",sinapsi);
+      printf("\nNormalizzazione: %d",norm);
+      printf("\n*****************************\n");
             
       for(int ii=0;ii<epoche;ii++)
         {
@@ -400,14 +422,14 @@ int main(int argc,char *argv[])
           FILE* stream = fopen(f_name, "r");
           if(stream==0)
             {
-              printf("Errore: il file %s non e' presente\n",f_name);
+              printf("\n\nErrore: il file %s non e' presente\n",f_name);
               exit(1);
             }
 
           int dati = 0;
 
           /* Carica i dati di training ed esegue il training*/
-          while(leggi_dato(img,&label,stream)>0)
+          while(leggi_dato_classe(img,&label,stream)>0)
             {
               dati++;
 

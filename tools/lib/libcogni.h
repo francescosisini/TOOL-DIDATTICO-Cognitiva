@@ -28,8 +28,12 @@ double activ_function(double summed_input);
 double Dactiv_function(double summed_input);
 
 
-/* Legge un immagine 28x28 in o e la sua label in out_label */
-int leggi_dato(int * o,int * out_label,FILE * in_stream);
+/* Legge un dato/record in formato csv (d1,d2,...,dn) */
+int leggi_dato(int * o,FILE * in_stream);
+
+/* Legge una classe e un  dato/record in formato csv (c,d1,d2,...,dn) */
+int leggi_dato_classe(int * o,int * out_label,FILE * in_stream);
+
 
 /* Stampa a video una matrice r x c in R,C */
 void print_object(double x[],int r, int c,int R,int C);

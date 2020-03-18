@@ -389,7 +389,7 @@ int main(int argc,char *argv[])
 
             
       
-      printf("\n%d\n\n",imax);
+      printf("%d",imax);
       
       fflush(stdout);
     }

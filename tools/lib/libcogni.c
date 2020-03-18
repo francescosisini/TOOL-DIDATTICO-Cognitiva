@@ -145,9 +145,9 @@ int leggi_dato_classe(int * o,int * out_label,FILE * in_stream)
 
 int leggi_dato(int * o,FILE * in_stream)
 {
-  int r = 0;
+  int r = fscanf(in_stream,"%d",o);
   int rd;
-  int i = 0;
+  int i = 1;
   do
     {
       r += (rd = fscanf(in_stream,",%d",o+i));

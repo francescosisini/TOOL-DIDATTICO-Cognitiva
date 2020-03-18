@@ -1,6 +1,6 @@
 /*_________________________________________________________________________
-  |  Addestra percettrone multristrato (apms)
-  |  Copyright (C) 2018  Francesco Sisini (francescomichelesisini@gmail.com)
+  |  Rete neurale shallow (rns)
+  |  Copyright (C) 2020  Francesco Sisini (francescomichelesisini@gmail.com)
   |
   |  This program is free software: you can redistribute it and/or modify
   |  it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
   |  You should have received a copy of the GNU General Public License
   |  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-// ./cognitiva_apms mnist_train.csv 7 60000 0.2 0.01 9 100 
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -277,9 +276,9 @@ int main(int argc,char *argv[])
   /*Strato 1*/
   
   double * v_x0 = malloc((l1_nd+1)*sizeof(double));/* input dei percettroni del layer 1*/
-  
+ 
   double * v_t = malloc((l1_nd+1)*l1_np*sizeof(double));/* NP vettori di peso dendritico*/
-
+  
   double * v_Dt = malloc((l1_nd+1)*l1_np*sizeof(double));/* Variazione v_t */
 
   double * v_s1 = malloc(l1_np*sizeof(double)); /*NP valori input*/
@@ -288,9 +287,13 @@ int main(int argc,char *argv[])
 
   /*Strato 2*/
   double * v_x1 = malloc((l2_nd+1)*sizeof(double));/* input dei percettroni del layer 2*/
+
   double * v_u = malloc((l2_nd+1)*l2_np*sizeof(double));/* NP vettori di peso dendritico*/
+
   double * v_Du = malloc((l2_nd+1)*l2_np*sizeof(double));/* Variazione v_u*/
+
   double * v_s2 = malloc(l2_np*sizeof(double)); /*NP valori input*/
+
   double * v_y2 = malloc(l2_np*sizeof(double));/* NP output uno per percettrone*/
 
   /*Output desiderato*/
@@ -516,3 +519,11 @@ int main(int argc,char *argv[])
       printf("\nProdotti: layer1.w e layer2.w\n");
     }
 }
+
+/************************************
+ * ATTENZIONE: il codice non libera
+ * esplicitamente la memoria perché
+ * pensato solo per l'uso one-shot
+ * eseguire le free nel caso lo si 
+ * riutilizzi in un contesto diverso
+ */

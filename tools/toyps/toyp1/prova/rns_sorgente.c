@@ -249,13 +249,14 @@ int main(int argc,char *argv[])
       printf("\n\t rn -c -f FILE<dati> -l1 FILE<layer1> -l2FILE<layer2> -d INT<neuroni input> INT<neuroni intrecalari> INT<neuroni output>\n");
       
       printf("\n");
-      printf("\n\t-a addestra la rete e produce i file layer1.w layer2.w\n");
-      printf("\n\t-c classifica l'input\n");
+      printf("\n\t-a addestra la rete e produce i file layer1.w layer2.w");
+      printf("\n\t-c classifica l'input");
       printf("\t<normalizzazione> se presente è il divisore di tutti i valori di input.\n");
       printf("\t<max_sinapsi> è il valore massimo che viene assegnato alle connessioni durante la inizializzazione random\n");
       printf("\t<rnd_seed> è il seme usato per la inizializzazione random.\n");
       printf("\tFILE è in formato csv. Ogni riga è un dato. Il primo campo è la classe, seguono un numero di valori interi pari a <neuroni_input>.\n");
-      printf("\t-v (verbose) visualizza output durante l'elaborazione\n");
+      printf("\t-v (verbose) visualizza output durante l'elaborazione");
+      printf("Help %d\n",help);
             exit(1);
     }
 

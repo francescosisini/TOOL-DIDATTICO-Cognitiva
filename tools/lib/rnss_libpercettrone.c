@@ -9,16 +9,35 @@
 
 typedef struct
 {
-  
-  double * strato_input;
-  double * strato_output;
+  double * strato_ingresso;
+  double * strato_uscita;
   
   /* Numero di elementi dell'array che saranno allocati */ 
-  int N_strati_interni;
-  int N_neuroni_primo_strato;
-  int N_neuroni_secondo_strato;
-  int N_neuroni_terzo_strato;
-  double * strato_interno[3];
+  int N_neuroni_ingresso;
+  int N_neuroni_uscita;
+  int N_neuroni_primo_strato_interno;
+  int N_neuroni_secondo_strato_interno;
+
+  /* Strato 1: dall'ingresso 0 all'uscita 1 */
+  double * v_x0;
+  double * v_t;
+  double * v_Dt;
+  double * v_s1;
+  double * v_y1;
+
+  /* Strato 2: dall'ingresso 1 all'uscita 2 */
+  double * v_x1;
+  double * v_u;
+  double * v_Du;
+  double * v_s2;
+  double * v_y2;
+
+  /* Strato 3: dall'ingresso 2 all'uscita 3 */
+  double * v_x2;
+  double * v_v;
+  double * v_Dv;
+  double * v_s3;
+  double * v_y3;
 } rnss_rete;
 
 typedef struct
@@ -34,16 +53,48 @@ typedef struct
 }rnss_dati_non_classificati;
 
 rnss_rete * rnss_Crea_rete(
-			   int N_strati_interni,
-			   int N_neuroni_primo_strato,
-			   int N_neuroni_secondo_strato,
-			   int N_neuroni_terzo_strato );
+			   int N_neuroni_ingresso,
+			   int N_neuroni_uscita,
+			   int N_neuroni_primo_strato_interno,
+			   int N_neuroni_secondo_strato_interno);
 
 double * rnss_Strato_output(rnss_rete * rete);
 
 rnss_rete *  rnss_Addestra(rnss_rete * rete, rnss_dati_classificati * dc);
 
 rnss_rete *  rnss_Classifica(rnss_rete * rete, rnss_dati_non_classificati * d);
+
+
+rnss_rete * rnss_Crea_rete(
+			   int N_neuroni_ingresso,
+			   int N_neuroni_uscita,
+			   int N_neuroni_primo_strato_interno,
+			   int N_neuroni_secondo_strato_interno);
+{
+  rnss_rete * rn = malloc(sizeof(rnss_rete));
+  if(rn == 0) exit (1);
+  
+  /* neuroni del primo strato interno */
+  int l1_np =  N_neuroni_primo_strato_interno;
+  if(l1_np == 0)
+    l1_np = N_neuroni_uscita; //la rete ha un solo strato
+  /* dendriti del primo strato iinterno */
+  int l1_nd = int N_neuroni_ingresso;
+  
+    
+  rn->N_strati_interni =  N_strati_interni;
+
+  double * v_x0 = malloc((l1_nd+1)*sizeof(double));/* input dei percettroni del layer 1*/
+  
+  double * v_t = malloc((l1_nd+1)*l1_np*sizeof(double));/* NP vettori di peso dendritico*/
+  
+  double * v_Dt = malloc((l1_nd+1)*l1_np*sizeof(double));/* Variazione v_t */
+  
+  double * v_s1 = malloc(l1_np*sizeof(double)); /*NP valori input*/
+  
+  double * v_y1 = malloc(l1_np*sizeof(double));/* NP output uno per percettrone*/
+
+}
 
 
 

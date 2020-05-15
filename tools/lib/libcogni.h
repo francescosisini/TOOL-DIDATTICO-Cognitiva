@@ -6,47 +6,6 @@
 
 
 
-
-typedef struct
-{
-  
-  double * strato_input;
-  double * strato_output;
-  
-  /* Numero di elementi dell'array che saranno allocati */ 
-  int N_strati_interni;
-  int N_neuroni_primo_strato;
-  int N_neuroni_secondo_strato;
-  int N_neuroni_terzo_strato;
-  double * strato_interno[3];
-} rnss_rete;
-
-typedef struct
-{
-  
-
-}rnss_dati_classificati;
-
-typedef struct
-{
-  
-
-}rnss_dati_non_classificati;
-
-rnss_rete * rnss_Crea_rete(
-			   int N_strati_interni,
-			   int N_neuroni_primo_strato,
-			   int N_neuroni_secondo_strato,
-			   int N_neuroni_terzo_strato );
-
-double * rnss_Strato_output(rnss_rete * rete);
-
-rnss_rete *  rnss_Addestra(rnss_rete * rete, rnss_dati_classificati * dc);
-
-rnss_rete *  rnss_Classifica(rnss_rete * rete, rnss_dati_non_classificati * d);
-
-
-
 /*** Livello 1 ***/
 /* Calcola l'output di uno strato  percettroni */
 void layer_feed_forward(double v_s[],double v_y[],double v_w[],double v_x[],int n_perc, int n_dend);

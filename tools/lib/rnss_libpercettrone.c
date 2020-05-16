@@ -22,13 +22,18 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 { 
   int l1_nd = rn->N_neuroni_ingresso;
   int l1_np = rn->N_neuroni_primo_strato_interno;
+  int l2_nd = l1_np;
+  int l2_np;
   /* preparazione degli ingressi e delle label delle classi*/
   rn->v_x0[0] = 1;
   
   memcpy(rn->v_x0+1,dati,rn->N_neuroni_ingresso*sizeof(double));
+
+  /** UNO STRATO **/
   if(rn->N_strati_computazionali == 1)
     {
       memcpy(rn->v_Dt,classi,rn->N_neuroni_uscita*sizeof(double));
+      /* Feed Forward: Input->L1->output to L2 */
       layer_feed_forward(
 			 rn->v_s1,
 			 rn->v_y1,
@@ -49,21 +54,77 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 			   rn->v_Dt[i]- rn->v_y1[i],
 			   par->fattore_apprendimento,
 			   l1_nd);
-	  printf("Atteso %lf, ottenuto %lf\n", rn->v_Dt[i], rn->v_y1[i]);
 	}
+      
+      return rn;
     }
-  return rn;
-}
 
+  /** DUE STRATI **/
+   if(rn->N_strati_computazionali == 2)
+     {
+       l2_np = rn->N_neuroni_uscita;
+       memcpy(rn->v_Du,classi,rn->N_neuroni_uscita*sizeof(double));
+       /* Feed Forward: Input->L1->output to L2 */
+       layer_feed_forward(
+			  rn->v_s1,
+			  rn->v_y1,
+			  rn->v_t,
+			  rn->v_x0,
+			  l1_np,
+			  l1_nd);
+       
+       /* Mappa y1 in x1 aggiungendo l'elemento x1_0=1*/
+       layer_map_out_in(rn->v_x1, rn->v_y1,l2_nd);
+       
+       /* Feed Forward: L2->output */
+       layer_feed_forward(rn->v_s2,rn->v_y2,rn->v_u,rn->v_x1,l2_np,l2_nd);
+       
+       
+       /** Propagazione inversa dell'errore in L2  (v_u  <- v_y1) */
+       for(int i=0;i<l2_np;i++)
+	 {
+	   
+	   /* correzione dei pesi (v_t) del percettrone i-esimo */
+	   perc_correzione(
+			   rn->v_u+i*(l1_nd+1),
+			   rn->v_x1,
+			   rn->v_s2[i],
+			   rn->v_Du[i]- rn->v_y2[i],
+			   par->fattore_apprendimento,
+			   l2_nd);
+	 }
+       
+       /** Propagazione inversa dell'errore in L1  (v_t <- v_y2)*/
+       for(int i=0;i<l1_np;i++)
+	 {
+	   double dd=0;
+	   for(int j=0;j<l2_np;j++)
+	     {
+	       /* w: peso del i-esimo dendrite del j-esimo percettrone dello strato più esterno */
+	       double w=rn->v_u[j*(l2_nd+1)+i];
+	       /* correzione   */
+	       dd=dd+w*(rn->v_Dt[j]-rn->v_y2[j])*Dactiv_function(rn->v_s2[j]);
+	     }
+	   
+	   /* correzione del percettrone i-esimo*/
+	   perc_correzione( rn->v_t+i*(l1_nd+1),rn->v_x0,rn->v_s1[i],dd, par->fattore_apprendimento,l1_nd);
+	 }
+     
+       return rn;
+     }
+}
 
 
 void rnss_Classifica(rnss_rete * rn, double * dati)
 {
   int l1_nd = rn->N_neuroni_ingresso;
   int l1_np = rn->N_neuroni_primo_strato_interno;
+  int l2_nd;
+  int l2_np;
   /* preparazione degli ingressi e delle label delle classi*/
   rn->v_x0[0] = 1;
   memcpy(rn->v_x0+1,dati,rn->N_neuroni_ingresso*sizeof(double));
+  /* UNO STRATO */
   if(rn->N_strati_computazionali == 1)
     {
       layer_feed_forward(
@@ -76,6 +137,37 @@ void rnss_Classifica(rnss_rete * rn, double * dati)
       rn->strato_uscita = rn->v_y1;
       
     }
+
+  /* DUE STRATI */
+  if(rn->N_strati_computazionali == 2)
+    {
+      l2_np = rn->N_neuroni_uscita;
+      l2_nd = l1_np;
+      layer_feed_forward(
+			 rn->v_s1,
+			 rn->v_y1,
+			 rn->v_t,
+			 rn->v_x0,
+			 l1_np,
+			 l1_nd);
+      
+       /** Mappa y1 in x1 aggiungendo l'elemento x1_0=1*/
+      layer_map_out_in(rn->v_x1,
+		       rn->v_y1,
+		       l2_nd);
+      
+      /** Feed Forward: L1->L2->output*/
+      layer_feed_forward(rn->v_s2,
+			 rn->v_y2,
+			 rn->v_u,
+			 rn->v_x1,
+			 l2_np,
+			 l2_nd);
+      
+      rn->strato_uscita = rn->v_y2;
+      
+    }
+  
 }
 
 

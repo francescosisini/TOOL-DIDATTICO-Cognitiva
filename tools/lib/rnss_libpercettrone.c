@@ -24,10 +24,11 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
   int l1_np = rn->N_neuroni_primo_strato_interno;
   /* preparazione degli ingressi e delle label delle classi*/
   rn->v_x0[0] = 1;
-  memcpy(rn->v_x0+1,dati,rn->N_neuroni_ingresso);
-  if(rn->N_starti_computazionali == 1)
+  
+  memcpy(rn->v_x0+1,dati,rn->N_neuroni_ingresso*sizeof(double));
+  if(rn->N_strati_computazionali == 1)
     {
-      memcpy(rn->v_Dt,classi,rn->N_neuroni_ingresso);
+      memcpy(rn->v_Dt,classi,rn->N_neuroni_uscita*sizeof(double));
       layer_feed_forward(
 			 rn->v_s1,
 			 rn->v_y1,
@@ -39,6 +40,7 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
       /** Propagazione inversa dell'errore in L1  (v_t  <- v_y1) */
       for(int i=0;i<l1_np;i++)
 	{
+	 
 	  /* correzione dei pesi (v_t) del percettrone i-esimo */
 	  perc_correzione(
 			   rn->v_t+i*(l1_nd+1),
@@ -47,15 +49,12 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 			   rn->v_Dt[i]- rn->v_y1[i],
 			   par->fattore_apprendimento,
 			   l1_nd);
+	  printf("Atteso %lf, ottenuto %lf\n", rn->v_Dt[i], rn->v_y1[i]);
 	}
     }
+  return rn;
 }
 
-/* 
-   Usa una rete già addestrata per classificare i dati 
-   il risultato è puntato da rete->strato_uscita
-*/
-void  rnss_Classifica(rnss_rete * rete, double * dati);
 
 
 void rnss_Classifica(rnss_rete * rn, double * dati)
@@ -64,8 +63,8 @@ void rnss_Classifica(rnss_rete * rn, double * dati)
   int l1_np = rn->N_neuroni_primo_strato_interno;
   /* preparazione degli ingressi e delle label delle classi*/
   rn->v_x0[0] = 1;
-  memcpy(rn->v_x0+1,dati,rn->N_neuroni_ingresso);
-  if(rn->N_starti_computazionali == 1)
+  memcpy(rn->v_x0+1,dati,rn->N_neuroni_ingresso*sizeof(double));
+  if(rn->N_strati_computazionali == 1)
     {
       layer_feed_forward(
 			 rn->v_s1,
@@ -75,6 +74,7 @@ void rnss_Classifica(rnss_rete * rn, double * dati)
 			 l1_np,
 			 l1_nd);
       rn->strato_uscita = rn->v_y1;
+      
     }
 }
 
@@ -87,7 +87,7 @@ void * rnss_Libera_rete(rnss_rete * rete)
   free(rete->v_s1);
   free(rete->v_y1);
 
-  if( rete->N_starti_computazionali >=2)
+  if( rete->N_strati_computazionali >=2)
     {
       free(rete->v_x1);
       free(rete->v_u);
@@ -96,7 +96,7 @@ void * rnss_Libera_rete(rnss_rete * rete)
       free(rete->v_y2);
     }
 
-   if( rete->N_starti_computazionali >=3)
+   if( rete->N_strati_computazionali >=3)
     {
       free(rete->v_x2);
       free(rete->v_v);
@@ -115,6 +115,8 @@ rnss_rete * rnss_Crea_rete(
 			   int N_neuroni_secondo_strato_interno)
 {
   rnss_rete * rn = malloc(sizeof(rnss_rete));
+  rn->N_neuroni_uscita = N_neuroni_uscita;
+  rn->N_neuroni_ingresso = N_neuroni_ingresso;
   if(rn == 0) exit (1);
    
   /*
@@ -132,11 +134,11 @@ rnss_rete * rnss_Crea_rete(
       dello strato computazionale
       */
       l1_np = N_neuroni_uscita;
-      rn->N_starti_computazionali = 1;
+      rn->N_strati_computazionali = 1;
     }
   rn-> N_neuroni_primo_strato_interno = l1_np;
   /* dendriti del primo strato iinterno */
-  int l1_nd = N_neuroni_ingresso;
+  int l1_nd = rn->N_neuroni_ingresso;
   rn->N_neuroni_ingresso = l1_nd;
   /* input dei percettroni dello strato 1*/
   rn->v_x0 = malloc((l1_nd+1)*sizeof(double));
@@ -154,7 +156,7 @@ rnss_rete * rnss_Crea_rete(
       rn->v_t[i]=MAX_PESO*(double)rand()/(double)RAND_MAX-MIN_PESO;
    
   /* RETURN si tratta si un percettrone a singolo strato*/
-  if(rn->N_starti_computazionali == 1) return rn;
+  if(rn->N_strati_computazionali == 1) return rn;
 
   /*
     STRATO 2: Questo è il secondo strato computazionale della rete
@@ -171,7 +173,7 @@ rnss_rete * rnss_Crea_rete(
       del secondo strato computazionale
       */
       l2_np = N_neuroni_uscita;
-      rn->N_starti_computazionali = 2;
+      rn->N_strati_computazionali = 2;
 
     }
   /* dendriti del secondo strato iinterno */
@@ -193,7 +195,7 @@ rnss_rete * rnss_Crea_rete(
       rn->v_u[i]=MAX_PESO*(double)rand()/(double)RAND_MAX-MIN_PESO;
 
   /* RETURN si tratta si un percettrone a due strati*/
-  if(rn->N_starti_computazionali == 2) return rn;
+  if(rn->N_strati_computazionali == 2) return rn;
 
    /*
     STRATO 3: Questo è il terzo strato computazionale della rete
@@ -203,7 +205,7 @@ rnss_rete * rnss_Crea_rete(
   
   /* neuroni del terzo strato (computazionale) interno */
   int l3_np =  N_neuroni_uscita;
-  rn->N_starti_computazionali = 3;
+  rn->N_strati_computazionali = 3;
 
   /* dendriti del terzo strato iinterno */
   int l3_nd = l2_np;

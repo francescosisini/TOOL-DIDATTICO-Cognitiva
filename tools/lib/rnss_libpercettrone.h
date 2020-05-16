@@ -14,7 +14,7 @@ typedef struct
   int N_neuroni_uscita;
   int N_neuroni_primo_strato_interno;
   int N_neuroni_secondo_strato_interno;
-  int N_starti_computazionali;
+  int N_strati_computazionali;
 
   /* Strato 1: dall'ingresso 0 all'uscita 1 */
   double * v_x0;
@@ -70,3 +70,8 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 			   rnss_parametri * par,
 			   double * dati,
 			   double * classi);
+/* 
+   Usa una rete già addestrata per classificare i dati 
+   il risultato è puntato da rete->strato_uscita
+*/
+void  rnss_Classifica(rnss_rete * rete, double * dati);

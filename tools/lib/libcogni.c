@@ -101,7 +101,7 @@ void layer_map_out_in(double v_x[],double v_y[], int n_dend)
 
 /*_________________________________________________________________
  *|  v_w: vettore di dimensione  n_dend+1 di pesi dendritici
- *|  v_x: vettore delgi n_dend+1 (c'è il bias) input al percettrone
+ *|  v_x: vettore degli n_dend+1 (c'è il bias) input al percettrone
  *|  n_dend numero di dendriti  */
 double perc_calc_output(double v_w[],double v_x[],int n_dend)
 {

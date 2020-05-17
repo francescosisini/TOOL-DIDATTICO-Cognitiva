@@ -60,7 +60,7 @@ rnss_rete * rnss_Crea_rete(
 			   int N_neuroni_secondo_strato_interno);
 
 /* libera le risorse della rete */
-void * rnss_Libera_rete(rnss_rete * rete);
+void  rnss_Libera_rete(rnss_rete * rete);
 
 /* 
    addestra una rete neurale usando i dati e le classi passate

@@ -96,7 +96,7 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 	   for(int j=0;j<l2_np;j++)
 	     {
 	       /* w: peso del i-esimo dendrite del j-esimo percettrone dello strato più esterno */
-	       double w=rn->v_u[j*(l2_nd+1)+i];
+	       double w = rn->v_u[j*(l2_nd+1)+i];
 	       /* correzione   */
 	       dd=dd+w*(rn->v_Dt[j]-rn->v_y2[j])*Dactiv_function(rn->v_s2[j]);
 	     }
@@ -156,7 +156,7 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 	   for(int j=0;j<l3_np;j++)
 	     {
 	       /* w: peso del i-esimo dendrite del j-esimo percettrone dello strato più esterno */
-	       double w=rn->v_v[j*(l3_nd+1)+i];
+	       double w = rn->v_v[j*(l3_nd+1)+i];
 	       /* correzione   */
 	       dd=dd+w*(rn->v_Du[j]-rn->v_y3[j])*Dactiv_function(rn->v_s3[j]);
 	     }

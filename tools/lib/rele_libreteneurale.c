@@ -106,15 +106,13 @@ rele_rete *  rele_Addestra(rele_rete * rn,
 	  Aggiornamento dello strato L2: i pesi della rete dello strato u temporaneo
 	  vengono copiati sullo strato u
        */
-       memcpy(rn->v_u,rn->v_u_tmp,sizeof(double)*l2_np*(l1_nd+1));
+       memcpy(rn->v_u,rn->v_u_tmp,sizeof(double)*l2_np*(l2_nd+1));
        return rn;
      }
    
   /** TRE STRATI **/
    if(rn->N_strati_computazionali == 3)
      {
-       memcpy(rn->v_Dv,classi,rn->N_neuroni_afferenti*sizeof(double));
-       
        /* Feed Forward: x0->L1->y1 */
        layer_feed_forward(rn->v_s1,rn->v_y1,rn->v_t,rn->v_x0,l1_np,l1_nd);
        
@@ -130,16 +128,17 @@ rele_rete *  rele_Addestra(rele_rete * rn,
         /* Feed Forward: x2->L3->y3 */
        layer_feed_forward(rn->v_s3,rn->v_y3,rn->v_v,rn->v_x2,l3_np,l3_nd);
 
-       
+       rn->EQM = 0;
        
 	/** Propagazione inversa dell'errore in L3  (v_v  <- v_y3) */
        for(int i=0;i<l3_np;i++)
 	 {
-	   double errore = rn->v_Dv[i]- rn->v_y3[i];
-	   rn->EQM += (1./(double)l2_np)*errore*errore; 
+	   double errore = rn->v_d[i]- rn->v_y3[i];
+	   rn->v_dy3[i] = errore;
+	   rn->EQM += (1./(double)l3_np)*errore*errore; 
 	   /* correzione dei pesi (v_v_tmp) del percettrone i-esimo */
 	   perc_correzione(
-			   rn->v_v_tmp+i*(l2_nd+1),
+			   rn->v_v+i*(l3_nd+1),
 			   rn->v_x2,
 			   rn->v_s3[i],
 			   errore,
@@ -157,11 +156,12 @@ rele_rete *  rele_Addestra(rele_rete * rn,
 	       /* w: peso del i-esimo dendrite del j-esimo percettrone dello strato più esterno */
 	       double w = rn->v_v[j*(l3_nd+1)+i];
 	       /* correzione   */
-	       dd=dd+w*(rn->v_Dv[j]-rn->v_y3[j])*Dactiv_function(rn->v_s3[j]);
+	       //dd=dd+w*(rn->v_Dv[j]-rn->v_y3[j])*Dactiv_function(rn->v_s3[j]);
+	       dd=dd+w*(rn->v_dy3[j])*Dactiv_function(rn->v_s3[j]);
 	     }
-	   
+	   rn->v_dy2[i] = dd;
 	   /* correzione del percettrone i-esimo*/
-	   perc_correzione( rn->v_u_tmp+i*(l2_nd+1),rn->v_x1,rn->v_s2[i],dd, par->fattore_apprendimento,l2_nd);
+	   perc_correzione( rn->v_u+i*(l2_nd+1),rn->v_x1,rn->v_s2[i],dd, par->fattore_apprendimento,l2_nd);
 	 }
        
         /** Propagazione inversa dell'errore in L2  (v_t <- v_y2)*/
@@ -173,20 +173,16 @@ rele_rete *  rele_Addestra(rele_rete * rn,
 	       /* w: peso del i-esimo dendrite del j-esimo percettrone dello strato più esterno */
 	       double w=rn->v_u[j*(l2_nd+1)+i];
 	       /* correzione   */
-	       dd=dd+w*(rn->v_Dt[j]-rn->v_y2[j])*Dactiv_function(rn->v_s2[j]);
+	       dd=dd+w*(rn->v_dy2[j])*Dactiv_function(rn->v_s2[j]);
 	     }
 	   
 	   /* correzione del percettrone i-esimo*/
 	   perc_correzione( rn->v_t+i*(l1_nd+1),rn->v_x0,rn->v_s1[i],dd, par->fattore_apprendimento,l1_nd);
 	 }
-        /* 
-	  Aggiornamento dello strato L2: i pesi della rete dello strato u temporaneo
-	  vengono copiati sullo strato u
-       */
-       memcpy(rn->v_v,rn->v_v_tmp,sizeof(double)*l1_np*(l2_nd+1));
-       return rn;
-       
-       
+       /* Aggiornamento rete */
+       //memcpy(rn->v_v,rn->v_v_tmp,sizeof(double)*l3_np*(l3_nd+1));
+       //memcpy(rn->v_u,rn->v_u_tmp,sizeof(double)*l2_np*(l2_nd+1));
+              
        return rn;
      }
 }
@@ -340,9 +336,11 @@ rele_rete * rele_Crea_rete(
   rn->N_neuroni_sensitivi = N_neuroni_sensitivi;
   rn-> N_neuroni_primo_strato_intercalare =  N_neuroni_primo_strato_intercalare;
   rn-> N_neuroni_secondo_strato_intercalare =  N_neuroni_secondo_strato_intercalare;
-  
-  
+    
   if(rn == 0) exit (1);
+
+  /* Errore quadratico medio */
+  rn->EQM = 0;
 
   /* target output */
   rn->v_d = malloc(N_neuroni_afferenti*sizeof(double));

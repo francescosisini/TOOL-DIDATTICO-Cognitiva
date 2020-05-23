@@ -9,14 +9,14 @@
 #include <math.h>
 #include <string.h>
 #include "libcogni.h"
-#include "rnss_libpercettrone.h"
+#include "rele_libpercettrone.h"
 
 #define MAX_PESO 0.1
 #define MIN_PESO -0.1
 
 
-rnss_rete *  rnss_Addestra(rnss_rete * rn,
-			   rnss_parametri * par,
+rele_rete *  rele_Addestra(rele_rete * rn,
+			   rele_parametri * par,
 			   double * dati,
 			   double * classi)
 { 
@@ -78,7 +78,6 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
        /** Propagazione inversa dell'errore in L2  (v_u  <- v_y1) */
        for(int i=0;i<l2_np;i++)
 	 {
-	   
 	   /* correzione dei pesi (v_t) del percettrone i-esimo */
 	   perc_correzione(
 			   rn->v_u+i*(l1_nd+1),
@@ -92,11 +91,11 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
        /** Propagazione inversa dell'errore in L1  (v_t <- v_y2)*/
        for(int i=0;i<l1_np;i++)
 	 {
-	   double dd=0;
+	   double dd = 0;
 	   for(int j=0;j<l2_np;j++)
 	     {
 	       /* w: peso del i-esimo dendrite del j-esimo percettrone dello strato più esterno */
-	       double w=rn->v_u[j*(l2_nd+1)+i];
+	       double w = rn->v_u_tmp[j*(l2_nd+1)+i];
 	       /* correzione   */
 	       dd=dd+w*(rn->v_Dt[j]-rn->v_y2[j])*Dactiv_function(rn->v_s2[j]);
 	     }
@@ -104,7 +103,9 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 	   /* correzione del percettrone i-esimo*/
 	   perc_correzione( rn->v_t+i*(l1_nd+1),rn->v_x0,rn->v_s1[i],dd, par->fattore_apprendimento,l1_nd);
 	 }
-      
+
+       /* Aggiornamento dello strato L2 */
+       memcpy(rn->v_u_tmp,rn->v_u,sizeof(double)*l2_np*(l1_nd+1));
        return rn;
      }
    
@@ -156,7 +157,7 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 	   for(int j=0;j<l3_np;j++)
 	     {
 	       /* w: peso del i-esimo dendrite del j-esimo percettrone dello strato più esterno */
-	       double w=rn->v_v[j*(l3_nd+1)+i];
+	       double w = rn->v_v[j*(l3_nd+1)+i];
 	       /* correzione   */
 	       dd=dd+w*(rn->v_Du[j]-rn->v_y3[j])*Dactiv_function(rn->v_s3[j]);
 	     }
@@ -188,7 +189,7 @@ rnss_rete *  rnss_Addestra(rnss_rete * rn,
 
 
 
-void rnss_Classifica(rnss_rete * rn, double * dati)
+void rele_Classifica(rele_rete * rn, double * dati)
 {
   int l1_nd = rn->N_neuroni_ingresso;
   int l1_np = rn->N_neuroni_primo_strato_interno;
@@ -289,7 +290,7 @@ void rnss_Classifica(rnss_rete * rn, double * dati)
 }
 
 
-void  rnss_Libera_rete(rnss_rete * rete)
+void  rele_Libera_rete(rele_rete * rete)
 {
   free(rete->v_x0);
   free(rete->v_t);
@@ -320,14 +321,14 @@ void  rnss_Libera_rete(rnss_rete * rete)
   return;
 }
 
-rnss_rete * rnss_Crea_rete(
+rele_rete * rele_Crea_rete(
 			   int N_neuroni_ingresso,
 			   int N_neuroni_uscita,
 			   int N_neuroni_primo_strato_interno,
 			   int N_neuroni_secondo_strato_interno)
 {
   
-  rnss_rete * rn = malloc(sizeof(rnss_rete));
+  rele_rete * rn = malloc(sizeof(rele_rete));
   printf("Creo rete: %p\n",rn);
   rn->N_neuroni_uscita = N_neuroni_uscita;
   rn->N_neuroni_ingresso = N_neuroni_ingresso;
@@ -400,6 +401,8 @@ rnss_rete * rnss_Crea_rete(
   rn->v_x1 = malloc((l2_nd+1)*sizeof(double));
   /* un vettore di l1_nd dendriti per ogniuno dei l1_np neuron1*/
   rn->v_u = malloc((l2_nd+1)*l1_np*sizeof(double));
+  /* vettore temporaneo per l'update*/
+  rn->v_u_tmp = malloc((l2_nd+1)*l1_np*sizeof(double));
   /* variazione v_t */
   rn->v_Du = malloc((l2_nd+1)*l1_np*sizeof(double));
   /*vettore della somma pesata dei canali dendritici per ogni neurone*/
@@ -410,7 +413,9 @@ rnss_rete * rnss_Crea_rete(
   /* inizializzazione pseudocasuale delle connessioni */
    for(int i=0;i<(l2_nd+1)*l2_np;i++)
       rn->v_u[i]=MAX_PESO*(double)rand()/(double)RAND_MAX-MIN_PESO;
-
+   /* copia i pesi inizializzati nel vettore temporaneo */
+   memcpy(rn->v_u,rn->v_u_tmp,sizeof(double)*l2_np*(l1_nd+1));
+   
   /* RETURN si tratta si un percettrone a due strati*/
   if(rn->N_strati_computazionali == 2) return rn;
 

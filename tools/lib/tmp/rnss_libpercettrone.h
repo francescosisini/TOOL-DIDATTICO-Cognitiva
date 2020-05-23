@@ -26,6 +26,7 @@ typedef struct
   /* Strato 2: dall'ingresso 1 all'uscita 2 */
   double * v_x1;
   double * v_u;
+  double * v_u_tmp;
   double * v_Du;
   double * v_s2;
   double * v_y2;
@@ -33,10 +34,11 @@ typedef struct
   /* Strato 3: dall'ingresso 2 all'uscita 3 */
   double * v_x2;
   double * v_v;
+  double * v_v_tmp;
   double * v_Dv;
   double * v_s3;
   double * v_y3;
-} rnss_rete;
+} rna_rete;
 
 
 typedef struct
@@ -46,32 +48,32 @@ typedef struct
   int seme_pseudocasuale;
   int epoche;
   int campioni;
-}rnss_parametri;
+}rna_parametri;
 
 
 /* crea una rete neurale che può essere addestrata.
    Inizializza i pesi dendritici (pesi delle connessioni)
    tra -0.1 e 0.1
  */
-rnss_rete * rnss_Crea_rete(
+rna_rete * rna_Crea_rete(
 			   int N_neuroni_ingresso,
 			   int N_neuroni_uscita,
 			   int N_neuroni_primo_strato_interno,
 			   int N_neuroni_secondo_strato_interno);
 
 /* libera le risorse della rete */
-void  rnss_Libera_rete(rnss_rete * rete);
+void  rna_Libera_rete(rna_rete * rete);
 
 /* 
    addestra una rete neurale usando i dati e le classi passate
    ogni chiamata viene eseguita una singola iterazione
 */
-rnss_rete *  rnss_Addestra(rnss_rete * rn,
-			   rnss_parametri * par,
+rna_rete *  rna_Addestra(rna_rete * rn,
+			   rna_parametri * par,
 			   double * dati,
 			   double * classi);
 /* 
    Usa una rete già addestrata per classificare i dati 
    il risultato è puntato da rete->strato_uscita
 */
-void  rnss_Classifica(rnss_rete * rete, double * dati);
+void  rna_Classifica(rna_rete * rete, double * dati);

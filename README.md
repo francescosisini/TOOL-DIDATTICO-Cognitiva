@@ -4,6 +4,7 @@ Sviluppo di codice base per i fondamenti del Machine Learning:
 - Reti neurali non supervisionate
 - Regressione lineare
 - Bag of words
+- Immagini in tempo reale
 
 [Documentazione e uso](https://pumar.it/cognitiva/cgn.php)
 

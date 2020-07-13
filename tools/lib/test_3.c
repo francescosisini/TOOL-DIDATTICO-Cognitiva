@@ -31,7 +31,7 @@ int main()
 	  /* addestra la rete passando le coordinate del punto e il target
 	     output, cioè la label della classe di appartenenza */
 	  r = rele_Addestra(r,&par,d,c);
-	  eqm+=1./ITERAZIONI*r->EQM;
+	  eqm+=1./ITERAZIONI*r->EQ;
 	}
     }
   /* Termina quando l'errore quadratico, mediato su 100 iterazioni è soddisfacente */

@@ -1,0 +1,1 @@
+ gcc -o rns_omp rns_sorgente.c lib/libcogni.c -Ilib -lm -fopenmp
